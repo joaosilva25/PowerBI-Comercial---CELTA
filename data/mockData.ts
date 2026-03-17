@@ -44,10 +44,11 @@ export const fetchData = async (
   yearIdRow?: string,
   period?: string,
   type: string = "todos",
+  spreadsheetCode?: string,
 ): Promise<ApiDashboardData> => {
   // Handle Period Aggregation (3m, 6m, 12m) on Frontend
   if (period && period !== "monthly") {
-    return aggregatePeriodData(year, yearId, yearIdRow, period, type);
+    return aggregatePeriodData(year, yearId, yearIdRow, period, type, spreadsheetCode);
   }
 
   const cacheKey = JSON.stringify({
@@ -57,6 +58,7 @@ export const fetchData = async (
     yearIdRow,
     period: "monthly",
     type,
+    spreadsheetCode,
   });
 
   if (!forceRefresh) {
@@ -75,6 +77,7 @@ export const fetchData = async (
         yearId,
         yearIdRow,
         type,
+        spreadsheetCode,
       },
       {
         headers: {
@@ -112,6 +115,7 @@ const aggregatePeriodData = async (
   yearIdRow?: string,
   period?: string,
   type: string = "todos",
+  spreadsheetCode?: string,
 ): Promise<ApiDashboardData> => {
   let monthsToAggregate: string[] = [];
 
@@ -127,7 +131,7 @@ const aggregatePeriodData = async (
 
   // Fetch all required months
   const promises = monthsToAggregate.map((m) =>
-    fetchData(year, m, yearId, false, yearIdRow, "monthly", type).catch(
+    fetchData(year, m, yearId, false, yearIdRow, "monthly", type, spreadsheetCode).catch(
       () => null,
     ),
   );

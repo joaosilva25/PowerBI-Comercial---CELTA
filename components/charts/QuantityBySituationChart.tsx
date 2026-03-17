@@ -9,7 +9,17 @@ import {
   Tooltip,
   Legend,
 } from "recharts";
-import { ChartCard, toKeyValueData, truncateLabel } from "@/components/charts/ChartCard";
+import {
+  ChartCard,
+  EmptyChartState,
+  chartTokens,
+  NeonDefs,
+  toKeyValueData,
+  tooltipContentStyle,
+  tooltipItemStyle,
+  tooltipLabelStyle,
+  truncateLabel,
+} from "@/components/charts/ChartCard";
 
 interface QuantityBySituationChartProps {
   data: Record<string, number>;
@@ -19,47 +29,62 @@ export const QuantityBySituationChart: React.FC<
   QuantityBySituationChartProps
 > = ({ data }) => {
   const chartData = toKeyValueData(data, 8);
-  const colors = ["#3b82f6", "#10b981", "#f59e0b", "#ef4444", "#8b5cf6", "#06b6d4", "#f97316", "#64748b"];
+  const colors = [
+    "#60a5fa",
+    "#38bdf8",
+    "#22d3ee",
+    "#818cf8",
+    "#a5b4fc",
+    "#93c5fd",
+    "#0ea5e9",
+    "#1d4ed8",
+  ];
 
   return (
     <ChartCard title="Quantidade por Situação">
-      <ResponsiveContainer width="100%" height="100%">
-        <PieChart>
-          <Pie
-            data={chartData}
-            dataKey="value"
-            nameKey="name"
-            cx="50%"
-            cy="50%"
-            innerRadius={60}
-            outerRadius={110}
-            paddingAngle={3}
-          >
-            {chartData.map((_, index) => (
-              <Cell key={index} fill={colors[index % colors.length]} />
-            ))}
-          </Pie>
-          <Tooltip
-            formatter={(value) => Number(value) || 0}
-            labelFormatter={(label) => String(label)}
-            contentStyle={{
-              borderRadius: "8px",
-              border: "none",
-              boxShadow: "0 4px 6px -1px rgb(0 0 0 / 0.1)",
-            }}
-          />
-          <Legend
-            verticalAlign="bottom"
-            height={40}
-            iconType="circle"
-            formatter={(value) => (
-              <span className="text-sm text-gray-600 font-medium">
-                {truncateLabel(String(value), 18)}
-              </span>
-            )}
-          />
-        </PieChart>
-      </ResponsiveContainer>
+      {chartData.length === 0 ? (
+        <EmptyChartState />
+      ) : (
+        <ResponsiveContainer width="100%" height="100%">
+          <PieChart>
+            <NeonDefs id="qty-sit" />
+            <Pie
+              data={chartData}
+              dataKey="value"
+              nameKey="name"
+              cx="50%"
+              cy="50%"
+              innerRadius={60}
+              outerRadius={110}
+              paddingAngle={3}
+              stroke={chartTokens.surface}
+              strokeWidth={1}
+              filter="url(#qty-sit-glow)"
+            >
+              {chartData.map((_, index) => (
+                <Cell key={index} fill={colors[index % colors.length]} />
+              ))}
+            </Pie>
+            <Tooltip
+              formatter={(value) => Number(value) || 0}
+              labelFormatter={(label) => String(label)}
+              contentStyle={tooltipContentStyle}
+              labelStyle={tooltipLabelStyle}
+              itemStyle={tooltipItemStyle}
+            />
+            <Legend
+              verticalAlign="bottom"
+              height={40}
+              iconType="circle"
+              formatter={(value) => (
+                <span className="text-sm text-muted font-medium">
+                  {truncateLabel(String(value), 18)}
+                </span>
+              )}
+            />
+          </PieChart>
+        </ResponsiveContainer>
+      )}
     </ChartCard>
   );
 };

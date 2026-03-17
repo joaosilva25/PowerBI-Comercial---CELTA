@@ -5,10 +5,13 @@ import { Calendar } from 'lucide-react';
 
 export const DateFilter: React.FC = () => {
   return (
-    <div className="flex items-center gap-2 bg-white border border-gray-200 rounded-lg px-4 py-2 hover:border-blue-400 transition-colors cursor-pointer group">
-      <Calendar className="w-4 h-4 text-gray-500 group-hover:text-blue-500" strokeWidth={1.3} />
+    <div className="flex items-center gap-2 bg-surface/60 border border-border/60 rounded-xl px-4 py-2 hover:bg-surface-2/40 transition-colors cursor-pointer group">
+      <Calendar
+        className="w-4 h-4 text-muted group-hover:text-accent"
+        strokeWidth={1.3}
+      />
       <select 
-        className="bg-transparent text-sm text-gray-700 outline-none cursor-pointer group-hover:text-blue-600"
+        className="bg-transparent text-sm text-foreground outline-none cursor-pointer"
         defaultValue="this-month"
       >
         <option value="today">Hoje</option>

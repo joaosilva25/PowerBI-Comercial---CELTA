@@ -2,15 +2,6 @@
 
 import React from "react";
 import {
-  Bar,
-  BarChart,
-  CartesianGrid,
-  ResponsiveContainer,
-  Tooltip,
-  XAxis,
-  YAxis,
-} from "recharts";
-import {
   ChartCard,
   EmptyChartState,
   toKeyValueData,
@@ -25,54 +16,63 @@ export const QuantityByClientChart: React.FC<QuantityByClientChartProps> = ({
   data,
 }) => {
   const chartData = toKeyValueData(data, 12);
+  const maxValue = chartData[0]?.value ?? 0;
 
   return (
     <ChartCard title="Quantidade por Cliente (Top 12)">
       {chartData.length === 0 ? (
         <EmptyChartState />
       ) : (
-        <ResponsiveContainer width="100%" height="100%">
-          <BarChart
-            data={chartData}
-            margin={{ top: 10, right: 24, left: 28, bottom: 0 }}
-          >
-            <CartesianGrid
-              strokeDasharray="3 3"
-              vertical={false}
-              stroke="#e5e7eb"
-            />
-            <XAxis
-              dataKey="name"
-              tickFormatter={(v) => truncateLabel(String(v), 10)}
-              tick={{ fill: "#6b7280", fontSize: 12 }}
-              axisLine={false}
-              tickLine={false}
-              tickMargin={8}
-            />
-            <YAxis
-              width={48}
-              tickMargin={8}
-              tick={{ fill: "#6b7280", fontSize: 12 }}
-              axisLine={false}
-              tickLine={false}
-            />
-            <Tooltip
-              formatter={(value) => Number(value) || 0}
-              labelFormatter={(label) => String(label)}
-              contentStyle={{
-                borderRadius: "8px",
-                border: "none",
-                boxShadow: "0 4px 6px -1px rgb(0 0 0 / 0.1)",
-              }}
-            />
-            <Bar
-              dataKey="value"
-              fill="#f59e0b"
-              radius={[4, 4, 0, 0]}
-              barSize={28}
-            />
-          </BarChart>
-        </ResponsiveContainer>
+        <div className="thin-scrollbar h-full overflow-auto rounded-xl border border-border/60 bg-surface-2/20">
+          <table className="w-full text-sm">
+            <thead className="sticky top-0 bg-surface/85 backdrop-blur-xl border-b border-border/60">
+              <tr>
+                <th className="text-left font-semibold text-muted px-4 py-3 w-12">
+                  #
+                </th>
+                <th className="text-left font-semibold text-muted px-4 py-3">
+                  Cliente
+                </th>
+                <th className="text-right font-semibold text-muted px-4 py-3 w-28">
+                  Qtde
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              {chartData.map((row, index) => {
+                const pct =
+                  maxValue > 0 ? Math.max(0, Math.min(1, row.value / maxValue)) : 0;
+
+                return (
+                  <tr
+                    key={row.name}
+                    className="border-b border-border/40 hover:bg-surface-2/30 transition-colors"
+                  >
+                    <td className="px-4 py-3 text-muted-2 tabular-nums">
+                      {String(index + 1).padStart(2, "0")}
+                    </td>
+                    <td className="px-4 py-3">
+                      <div className="min-w-0">
+                        <div className="text-foreground font-medium truncate">
+                          {truncateLabel(String(row.name), 34)}
+                        </div>
+                        <div className="mt-2 h-1.5 rounded-full bg-border/30 overflow-hidden">
+                          <div
+                            className="h-full rounded-full bg-[linear-gradient(90deg,rgb(34_211_238),rgb(59_130_246))]"
+                            style={{ width: `${pct * 100}%` }}
+                          />
+                        </div>
+                      </div>
+                    </td>
+                    <td className="px-4 py-3 text-right tabular-nums text-foreground font-medium">
+                      {row.value}
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
       )}
     </ChartCard>
   );

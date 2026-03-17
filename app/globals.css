@@ -1,27 +1,77 @@
 @import "tailwindcss";
 
 :root {
-  --background: #f9fafb; /* Gray 50 */
-  --foreground: #111827; /* Gray 900 */
+  --background: rgb(7 10 20);
+  --foreground: rgb(230 237 247);
+  --surface: rgb(12 16 30);
+  --surface-2: rgb(14 22 40);
+  --border: rgb(148 163 184 / 0.14);
+  --muted: rgb(157 170 190);
+  --muted-2: rgb(114 128 148);
+  --accent: rgb(82 175 255);
+  --accent-2: rgb(34 211 238);
+
+  --chart-grid: rgb(148 163 184 / 0.16);
+  --chart-tick: rgb(157 170 190);
+  --tooltip-bg: rgb(10 14 25 / 0.92);
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-border: var(--border);
+  --color-muted: var(--muted);
+  --color-muted-2: var(--muted-2);
+  --color-accent: var(--accent);
+  --color-accent-2: var(--accent-2);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }
 
-/* Force light mode even if system is dark */
-/* @media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-} */
-
 body {
-  background: var(--background);
+  min-height: 100vh;
+  background-color: var(--background);
+  background-image: radial-gradient(
+      1200px circle at 15% 10%,
+      rgb(59 130 246 / 0.14),
+      transparent 60%
+    ),
+    radial-gradient(
+      900px circle at 80% 20%,
+      rgb(34 211 238 / 0.10),
+      transparent 55%
+    ),
+    radial-gradient(
+      1000px circle at 45% 90%,
+      rgb(99 102 241 / 0.10),
+      transparent 55%
+    );
+  background-attachment: fixed;
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-geist-sans), Arial, Helvetica, sans-serif;
+}
+
+.thin-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: rgb(148 163 184 / 0.22) transparent;
+}
+
+.thin-scrollbar::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+.thin-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.thin-scrollbar::-webkit-scrollbar-thumb {
+  background: rgb(148 163 184 / 0.22);
+  border-radius: 999px;
+}
+
+.thin-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: rgb(148 163 184 / 0.30);
 }

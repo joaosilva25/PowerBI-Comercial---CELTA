@@ -13,15 +13,17 @@ export const KPICard: React.FC<KPICardProps> = ({
   icon: Icon,
 }) => {
   return (
-    <div className="bg-white p-9 rounded-xl border border-gray-100 flex flex-col justify-between h-full shadow-xs">
+    <div className="bg-surface/60 backdrop-blur-xl p-7 rounded-2xl border border-border/60 flex flex-col justify-between h-full shadow-[0_12px_30px_-18px_rgb(0_0_0_/_0.7)]">
       <div className="flex justify-between items-start mb-4">
         <div>
-          <h3 className="text-gray-500 text-sm font-medium">{title}</h3>
-          <p className="text-2xl font-bold text-gray-900 mt-1">{value}</p>
+          <h3 className="text-muted text-sm font-medium">{title}</h3>
+          <p className="text-3xl font-semibold tracking-tight mt-1">
+            {value}
+          </p>
         </div>
         {Icon && (
-          <div className="p-2 bg-blue-50 rounded-lg">
-            <Icon className="w-6 h-6 text-blue-600" strokeWidth={1.3} />
+          <div className="p-2.5 rounded-xl bg-[linear-gradient(135deg,rgb(59_130_246_/_0.22),rgb(34_211_238_/_0.10))] border border-border/60">
+            <Icon className="w-6 h-6 text-accent" strokeWidth={1.3} />
           </div>
         )}
       </div>

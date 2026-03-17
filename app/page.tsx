@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState, useCallback } from "react";
+import { useState, useCallback } from "react";
 import { Sidebar } from "@/components/ui/Sidebar";
 import { KPICard } from "@/components/ui/KPICard";
 import { RevenueByServiceChart } from "@/components/charts/RevenueByServiceChart";
@@ -18,12 +18,11 @@ import { OptionalPinturaInternaCard } from "@/components/charts/OptionalPinturaI
 import { OptionalPinturaExternaCard } from "@/components/charts/OptionalPinturaExternaCard";
 import { OptionalPisoCard } from "@/components/charts/OptionalPisoCard";
 import { DashboardFilters } from "@/components/DashboardFilters";
-import { fetchData, clearCache, prefetchAllData } from "@/data/mockData";
+import { fetchData } from "@/data/mockData";
 import { YEARS_DATA } from "@/data/constants";
 import { DollarSign, Hash, TrendingUp } from "lucide-react";
 import { ApiDashboardData } from "@/types";
 import { Skeleton } from "@/components/ui/Skeleton";
-import axios from "axios";
 import { toast } from "sonner";
 
 const parseCurrency = (value: string): number => {
@@ -41,22 +40,20 @@ const formatCurrency = (value: number): string => {
 
 export default function Home() {
   const [rawData, setRawData] = useState<ApiDashboardData | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [isGeneratingReport, setIsGeneratingReport] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [sheetCode, setSheetCode] = useState<string>("");
 
   const currentYear = new Date().getFullYear().toString();
   const initialYearId =
     YEARS_DATA.find((y) => y.label === currentYear)?.id || YEARS_DATA[0].id;
 
-  const [selectedYearId, setSelectedYearId] = useState<string>(initialYearId);
-  const [selectedMonth, setSelectedMonth] = useState<string>(
-    (new Date().getMonth() + 1).toString(),
-  );
-  const [selectedPeriod, setSelectedPeriod] = useState<string>("monthly");
-  const [selectedType, setSelectedType] = useState<string>("todos");
+  const selectedYearId = initialYearId;
+  const selectedMonth = (new Date().getMonth() + 1).toString();
+  const selectedPeriod = "monthly";
+  const selectedType = "todos";
 
   const loadData = useCallback(
-    async (forceRefresh = false) => {
+    async (forceRefresh = false, code?: string) => {
       setIsLoading(true);
       const toastId = "loading-data";
       let toastShown = false;
@@ -73,6 +70,7 @@ export default function Home() {
         );
         const yearLabel = selectedYearData?.label || selectedYearId;
         const yearIdRow = selectedYearData?.idRow;
+        const spreadsheetCode = (code ?? sheetCode).trim();
 
         const result = await fetchData(
           yearLabel,
@@ -82,6 +80,7 @@ export default function Home() {
           yearIdRow,
           selectedPeriod,
           selectedType,
+          spreadsheetCode,
         );
 
         // Clear timer immediately after fetch returns
@@ -100,106 +99,38 @@ export default function Home() {
         setIsLoading(false);
       }
     },
-    [selectedYearId, selectedMonth, selectedPeriod, selectedType],
+    [selectedYearId, selectedMonth, selectedPeriod, selectedType, sheetCode],
   );
 
-  useEffect(() => {
-    loadData();
-  }, [loadData]);
-
-  useEffect(() => {
-    // Trigger pre-fetch in background after initial mount
-    prefetchAllData();
-  }, []);
-  const handleClearCache = useCallback(() => {
-    clearCache();
-    toast.success("Cache limpo. Recarregando dados...");
-    loadData(true);
-    prefetchAllData();
-  }, [loadData]);
-
-  const handleGenerateReport = async () => {
-    if (!rawData) {
-      toast.error("Nenhum dado disponível para gerar relatório.");
-      return;
-    }
-
-    setIsGeneratingReport(true);
-    const toastId = toast.loading("Nossa IA está gerando seu relatório...");
-
-    // TODO: Substitua pela URL correta do seu webhook para geração de relatórios
-    const REPORT_WEBHOOK_URL =
-      "https://n8n.srv946688.hstgr.cloud/webhook/df2ddc7d-37a0-418e-9399-ccf3065b3751";
-
-    try {
-      const response = await axios.post(REPORT_WEBHOOK_URL, rawData, {
-        responseType: "blob",
-      });
-
-      const blob = new Blob([response.data], {
-        type: response.headers["content-type"],
-      });
-
-      const url = window.URL.createObjectURL(blob);
-      const link = document.createElement("a");
-      link.href = url;
-
-      const selectedYearData = YEARS_DATA.find((y) => y.id === selectedYearId);
-      const yearLabel = selectedYearData?.label || selectedYearId;
-
-      const fileName = `Relatorio_Mensal_${selectedMonth.padStart(2, "0")}-${yearLabel}.docx`;
-
-      link.setAttribute("download", fileName);
-      document.body.appendChild(link);
-      link.click();
-
-      link.parentNode?.removeChild(link);
-      window.URL.revokeObjectURL(url);
-
-      toast.success("Relatório gerado e baixado com sucesso!", {
-        id: toastId,
-      });
-    } catch (error) {
-      console.error("Erro ao enviar solicitação de relatório:", error);
-      toast.error("Erro ao solicitar relatório. Tente novamente mais tarde.", {
-        id: toastId,
-      });
-    } finally {
-      setIsGeneratingReport(false);
-    }
-  };
+  const handleGenerateDashboard = useCallback(
+    (code: string) => {
+      setSheetCode(code);
+      loadData(true, code);
+    },
+    [loadData],
+  );
 
   return (
-    <div className="flex min-h-screen bg-gray-50 font-sans">
+    <div className="flex min-h-screen bg-background text-foreground font-sans">
       <Sidebar />
-      <main className="flex-1 ml-0 md:ml-64 p-8">
-        <div className="max-w-7xl mx-auto space-y-8">
-          <div className="flex justify-between items-center">
+      <main className="flex-1 ml-0 md:ml-72 p-6 md:p-10">
+        <div className="max-w-7xl mx-auto space-y-10">
+          <div className="flex justify-between items-start gap-6">
             <div>
-              <h1 className="text-2xl font-bold text-gray-900">
+              <h1 className="text-3xl font-semibold tracking-tight">
                 Dashboard Comercial
               </h1>
-              <p className="text-gray-500 mt-1">
+              <p className="text-muted mt-1">
                 Visão geral de faturamento e quantidade
               </p>
             </div>
-            <div className="text-sm text-gray-500 bg-white px-4 py-2 rounded-lg border border-gray-200 shadow-xs">
+            <div className="text-sm text-muted bg-surface/60 backdrop-blur-xl px-4 py-2 rounded-xl border border-border/60 shadow-[0_12px_30px_-18px_rgb(0_0_0_/_0.7)]">
               Última atualização: {new Date().toLocaleDateString("pt-BR")}
             </div>
           </div>
 
           <DashboardFilters
-            selectedYear={selectedYearId}
-            selectedMonth={selectedMonth}
-            selectedPeriod={selectedPeriod}
-            selectedType={selectedType}
-            onYearChange={setSelectedYearId}
-            onMonthChange={setSelectedMonth}
-            onPeriodChange={setSelectedPeriod}
-            onTypeChange={setSelectedType}
-            onGenerateReport={handleGenerateReport}
-            isGeneratingReport={isGeneratingReport}
-            onClearCache={handleClearCache}
+            onGenerateDashboard={handleGenerateDashboard}
             isLoading={isLoading}
           />
 
@@ -209,7 +140,7 @@ export default function Home() {
                 {[1, 2, 3].map((i) => (
                   <div
                     key={i}
-                    className="bg-white p-6 rounded-xl border border-gray-100 h-32"
+                    className="bg-surface/60 backdrop-blur-xl p-7 rounded-2xl border border-border/60 h-32 shadow-[0_12px_30px_-18px_rgb(0_0_0_/_0.7)]"
                   >
                     <div className="flex justify-between items-start mb-4">
                       <div className="space-y-2">
@@ -227,18 +158,18 @@ export default function Home() {
               </div>
 
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <div className="bg-white p-6 rounded-xl border border-gray-100 h-[400px]">
+                <div className="bg-surface/60 backdrop-blur-xl p-7 rounded-2xl border border-border/60 h-[400px] shadow-[0_12px_30px_-18px_rgb(0_0_0_/_0.7)]">
                   <Skeleton className="h-6 w-48 mb-6" />
                   <Skeleton className="h-[300px] w-full rounded-lg" />
                 </div>
-                <div className="bg-white p-6 rounded-xl border border-gray-100 h-[400px]">
+                <div className="bg-surface/60 backdrop-blur-xl p-7 rounded-2xl border border-border/60 h-[400px] shadow-[0_12px_30px_-18px_rgb(0_0_0_/_0.7)]">
                   <Skeleton className="h-6 w-48 mb-6" />
                   <Skeleton className="h-[300px] w-full rounded-lg" />
                 </div>
               </div>
 
               <div className="grid grid-cols-1">
-                <div className="bg-white p-6 rounded-xl border border-gray-100 h-[400px]">
+                <div className="bg-surface/60 backdrop-blur-xl p-7 rounded-2xl border border-border/60 h-[400px] shadow-[0_12px_30px_-18px_rgb(0_0_0_/_0.7)]">
                   <Skeleton className="h-6 w-48 mb-6" />
                   <Skeleton className="h-[300px] w-full rounded-lg" />
                 </div>
@@ -273,7 +204,7 @@ export default function Home() {
                 />
               </div>
 
-              <div className="text-sm font-semibold text-gray-700">
+              <div className="text-xs font-semibold tracking-wider text-muted uppercase">
                 Faturamento
               </div>
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -287,7 +218,7 @@ export default function Home() {
                 <RevenueByCityChart data={rawData?.faturamento_por.cidade || {}} />
               </div>
 
-              <div className="text-sm font-semibold text-gray-700">
+              <div className="text-xs font-semibold tracking-wider text-muted uppercase">
                 Quantidade
               </div>
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -307,7 +238,9 @@ export default function Home() {
                 <QuantityByFrotaChart data={rawData?.quantidade_por.frota || {}} />
               </div>
 
-              <div className="text-sm font-semibold text-gray-700">Opcionais</div>
+              <div className="text-xs font-semibold tracking-wider text-muted uppercase">
+                Opcionais
+              </div>
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 {rawData?.opcionais.nacionalizado && (
                   <OptionalNacionalizadoCard data={rawData.opcionais.nacionalizado} />
